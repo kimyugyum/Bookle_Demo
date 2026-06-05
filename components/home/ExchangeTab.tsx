@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Search, SlidersHorizontal, Star, MapPin, ArrowLeftRight, X, Send, CheckCircle2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Search, SlidersHorizontal, Star, MapPin, ArrowLeftRight, X, Send, CheckCircle2, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GENRE_LABELS } from '@/lib/user-store';
 import { loadUser } from '@/lib/user-store';
@@ -39,6 +39,11 @@ export function ExchangeTab({ userGenres = [] }: ExchangeTabProps) {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [user, setUser] = useState<UserData | null>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragDelta, setDragDelta] = useState(0);
+  const dragStartY = useRef(0);
+  const baseOffset = useRef(0); // collapsed offset in px
 
   useEffect(() => {
     setUser(loadUser());
@@ -63,11 +68,40 @@ export function ExchangeTab({ userGenres = [] }: ExchangeTabProps) {
     setModalBook(book);
     setMessage('');
     setDone(false);
+    setExpanded(false);
+    setDragDelta(0);
   };
 
   const closeModal = () => {
     setModalBook(null);
     setDone(false);
+    setExpanded(false);
+    setDragDelta(0);
+  };
+
+  const onDragStart = (e: React.TouchEvent) => {
+    dragStartY.current = e.touches[0].clientY;
+    baseOffset.current = expanded ? 0 : window.innerHeight * 0.20;
+    setIsDragging(true);
+  };
+
+  const onDragMove = (e: React.TouchEvent) => {
+    const delta = e.touches[0].clientY - dragStartY.current;
+    // Allow dragging up (negative delta), clamp so it can't go above fully expanded
+    const clamped = Math.max(-baseOffset.current, delta);
+    setDragDelta(clamped);
+  };
+
+  const onDragEnd = (e: React.TouchEvent) => {
+    setIsDragging(false);
+    const delta = e.changedTouches[0].clientY - dragStartY.current;
+    if (delta < -60) {
+      setExpanded(true);
+    } else if (delta > 80) {
+      if (expanded) setExpanded(false);
+      else closeModal();
+    }
+    setDragDelta(0);
   };
 
   const handleSubmit = () => {
@@ -210,13 +244,39 @@ export function ExchangeTab({ userGenres = [] }: ExchangeTabProps) {
 
       {/* 교환 요청 모달 */}
       {modalBook && (
-        <div className="fixed inset-0 z-60 flex items-end" onClick={closeModal}>
+        <div className="fixed inset-0 z-60 overflow-hidden" onClick={closeModal}>
+          {/* 딤 */}
+          <div className="absolute inset-0 bg-black/40" />
+
+          {/* 시트 */}
           <div
-            className="w-full max-w-md mx-auto bg-white rounded-t-3xl p-5 pb-8 animate-slide-up"
+            className="absolute bottom-0 left-0 right-0 max-w-md mx-auto h-[92dvh] bg-white rounded-t-3xl flex flex-col will-change-transform"
+            style={{
+              transform: `translateY(calc(${expanded ? 0 : 20}dvh + ${dragDelta}px))`,
+              transition: isDragging ? 'none' : 'transform 0.35s cubic-bezier(0.32, 0.72, 0, 1)',
+            }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* 핸들 */}
-            <div className="w-10 h-1 rounded-full bg-[#E5E7EB] mx-auto mb-4" />
+            {/* 핸들 — 드래그 영역 */}
+            <div
+              className="shrink-0 pt-3 pb-2 flex flex-col items-center touch-none cursor-grab active:cursor-grabbing"
+              onTouchStart={onDragStart}
+              onTouchMove={onDragMove}
+              onTouchEnd={onDragEnd}
+              onClick={() => { setExpanded((v) => !v); setDragDelta(0); }}
+            >
+              <div className="w-10 h-1 rounded-full bg-[#E5E7EB]" />
+              <ChevronDown
+                size={14}
+                className={cn(
+                  'text-[#D1D5DB] mt-1 transition-transform duration-300',
+                  expanded && 'rotate-180'
+                )}
+              />
+            </div>
+
+            {/* 스크롤 가능한 콘텐츠 영역 */}
+            <div className="flex-1 overflow-y-auto px-5 pb-8 min-h-0">
 
             {done ? (
               /* 완료 화면 */
@@ -316,6 +376,7 @@ export function ExchangeTab({ userGenres = [] }: ExchangeTabProps) {
                 </div>
               </>
             )}
+            </div>
           </div>
         </div>
       )}
