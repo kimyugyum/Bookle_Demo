@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import Image from 'next/image';
 import { X, ChevronRight, ArrowLeftRight, Users, BookOpen, Settings, LogOut, Bell } from 'lucide-react';
+import { logout } from '@/lib/user-store';
 import type { AppTab } from '@/types/app';
 import type { UserData } from '@/types/onboarding';
 
@@ -134,7 +135,7 @@ export function Header({ user, onTabChange }: HeaderProps) {
 
             {/* Bottom */}
             <div className="px-3 pb-10 pt-3 border-t border-white/12 mt-3">
-              <button className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-white/45 hover:text-red-300 hover:bg-white/10 transition-colors text-base">
+              <button onClick={logout} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-white/45 hover:text-red-300 hover:bg-white/10 transition-colors text-base">
                 <LogOut size={16} />
                 <span>로그아웃</span>
               </button>

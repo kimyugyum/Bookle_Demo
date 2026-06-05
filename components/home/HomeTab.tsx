@@ -226,7 +226,7 @@ export function HomeTab({ user, isFirstVisit, onTabChange }: HomeTabProps) {
             </button>
           ))}
         </div>
-        <p className="text-center text-[9px] text-[#D1D5DB] mt-3">© 2025 Bookle. All rights reserved.</p>
+        <p className="text-center text-[9px] text-[#D1D5DB] mt-3">© 2026 Bookle. All rights reserved.</p>
       </footer>
     </div>
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import { ChevronRight, Bell, Shield, HelpCircle, LogOut, Pencil, Settings, CheckCircle2, Circle, ArrowRight } from 'lucide-react';
+import { logout } from '@/lib/user-store';
 import { cn } from '@/lib/utils';
 import { genreLabels, completionSteps, completionPct } from '@/lib/user-store';
 import { BookCover } from '@/components/ui/BookCover';
@@ -214,7 +215,7 @@ export function ProfileTab({ user, onTabChange }: ProfileTabProps) {
           ))}
         </div>
 
-        <button className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-[#E5E7EB] text-sm text-[#9CA3AF] hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all">
+        <button onClick={logout} className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-[#E5E7EB] text-sm text-[#9CA3AF] hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all">
           <LogOut size={15} /> 로그아웃
         </button>
       </div>

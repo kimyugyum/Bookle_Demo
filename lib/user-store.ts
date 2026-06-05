@@ -72,3 +72,11 @@ export function completionPct(user: UserData | null): number {
 export function genreLabels(genreIds: string[]): string[] {
   return genreIds.map((id) => GENRE_LABELS[id] ?? id);
 }
+
+export function logout(): void {
+  if (typeof window === 'undefined') return;
+  ['bookle_user', 'bookle_visited', 'bookle_first_request', 'bookle_onboarding_draft', 'bookle_exchanges'].forEach(
+    (key) => localStorage.removeItem(key)
+  );
+  window.location.href = '/onboarding';
+}

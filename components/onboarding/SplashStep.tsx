@@ -21,8 +21,8 @@ export function SplashStep({ onNext }: SplashStepProps) {
           <Image
             src="/logo-v2.png"
             alt="Bookle"
-            width={240}
-            height={135}
+            width={160}
+            height={90}
             priority
             onLoad={() => setTimeout(() => setLogoReady(true), 600)}
           />
