@@ -17,7 +17,7 @@ interface HomeTabProps {
 const BESTSELLERS = [
   { title: '채식주의자',       author: '한강',      rank: 1 },
   { title: '아몬드',           author: '손원평',    rank: 2 },
-  { title: '82년생 김지영',    author: '조남주',    rank: 3 },
+  { title: '나의 라임 오렌지 나무', author: '조제 마우로 데 바스콘셀로스', rank: 3 },
   { title: '어린왕자',         author: '생텍쥐페리', rank: 4 },
   { title: '미드나잇 라이브러리', author: '매트 헤이그', rank: 5 },
   { title: '사피엔스',         author: '유발 하라리', rank: 6 },
@@ -33,27 +33,26 @@ const POPULAR_EXCHANGE = [
 
 const BANNERS = [
   {
-    bg: 'linear-gradient(135deg, #1A6B3C 0%, #2D8A52 100%)',
+    image: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=600&q=80',
     tag: '이벤트',
     title: '첫 교환 성공하면\n포인트 2배 적립!',
     sub: '6월 한 달간 진행',
-    tagColor: '#A8D5B8',
   },
   {
-    bg: 'linear-gradient(135deg, #1E3A5F 0%, #2563EB 100%)',
+    image: 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=600&q=80',
     tag: '신규 기능',
     title: 'AI 매칭으로\n딱 맞는 책 교환 상대 찾기',
     sub: '취향 기반 자동 추천',
-    tagColor: '#93C5FD',
   },
   {
-    bg: 'linear-gradient(135deg, #7C2D12 0%, #EA580C 100%)',
+    image: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=600&q=80',
     tag: '베스트',
     title: '이번 주 가장 많이\n교환된 책 TOP 10',
     sub: '지금 바로 확인하세요',
-    tagColor: '#FED7AA',
   },
 ];
+
+const AVATAR_COLORS = ['#7C3AED', '#DB2777', '#0284C7', '#D97706', '#059669'];
 
 const COMMUNITY_POSTS = [
   { author: '박민준', title: '"채식주의자" 읽고 생각이 많아졌어요', likes: 42, time: '1시간 전', category: '서평' },
@@ -177,14 +176,17 @@ export function HomeTab({ user, isFirstVisit, onTabChange }: HomeTabProps) {
             </button>
           </div>
           <div className="space-y-2">
-            {COMMUNITY_POSTS.map((post) => (
+            {COMMUNITY_POSTS.map((post, idx) => (
               <button
                 key={post.title}
                 onClick={() => onTabChange('community')}
                 className="w-full bg-white rounded-2xl p-4 border border-[#E5E7EB] shadow-sm text-left hover:border-[#A8D5B8] transition-all"
               >
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-6 h-6 rounded-full bg-[#E8F5EE] flex items-center justify-center text-[10px] font-bold text-[#1A6B3C]">
+                  <div
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0"
+                    style={{ background: AVATAR_COLORS[idx % AVATAR_COLORS.length] }}
+                  >
                     {post.author[0]}
                   </div>
                   <span className="text-xs text-[#6B7280]">{post.author}</span>
@@ -254,11 +256,22 @@ function BannerCarousel() {
   const banner = BANNERS[current];
 
   return (
-    <div className="relative rounded-2xl overflow-hidden h-28" style={{ background: banner.bg, transition: 'background 0.5s ease' }}>
+    <div className="relative rounded-2xl overflow-hidden h-28">
+      {/* 배경 이미지 */}
+      <Image
+        src={banner.image}
+        alt={banner.tag}
+        fill
+        className="object-cover transition-opacity duration-500"
+        sizes="448px"
+        priority
+      />
+      {/* 어두운 오버레이 */}
+      <div className="absolute inset-0 bg-black/35" />
       {/* Content */}
       <div className="absolute inset-0 px-5 py-4 flex flex-col justify-between">
         <div>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border" style={{ color: banner.tagColor, borderColor: banner.tagColor + '60' }}>
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border border-white/50 text-white/90">
             {banner.tag}
           </span>
           <p className="text-white font-bold text-base mt-2 leading-snug whitespace-pre-line">{banner.title}</p>

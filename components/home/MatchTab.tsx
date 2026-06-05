@@ -1,15 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sparkles, Check, X, ChevronRight, Clock, ArrowLeftRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BookCover } from '@/components/ui/BookCover';
+import { loadExchanges, updateStatus, type ExchangeRequest } from '@/lib/exchange-store';
 
 type SubTab = 'received' | 'sent';
 
-const RECEIVED = [
+// 데모용 고정 받은 요청
+const DEMO_RECEIVED = [
   {
-    id: 1,
+    id: 'demo-1',
     name: '박민준',
     theirBook: '채식주의자',
     theirAuthor: '한강',
@@ -18,18 +20,6 @@ const RECEIVED = [
     time: '2시간 전',
     reviewCount: 12,
     condition: 'A',
-  },
-];
-
-const SENT = [
-  {
-    id: 1,
-    name: '이수연',
-    theirBook: '코스모스',
-    theirAuthor: '칼 세이건',
-    myBook: '불편한 편의점',
-    matchScore: 87,
-    time: '1일 전',
   },
 ];
 
@@ -51,12 +41,33 @@ function Avatar({ name, idx }: { name: string; idx: number }) {
   );
 }
 
+const STATUS_LABEL: Record<string, { label: string; color: string }> = {
+  pending: { label: '응답 대기', color: 'bg-amber-50 text-amber-600' },
+  accepted: { label: '수락됨', color: 'bg-[#E8F5EE] text-[#1A6B3C]' },
+  rejected: { label: '거절됨', color: 'bg-red-50 text-red-400' },
+};
+
 export function MatchTab() {
   const [subTab, setSubTab] = useState<SubTab>('received');
-  const [accepted, setAccepted] = useState<number[]>([]);
-  const [rejected, setRejected] = useState<number[]>([]);
+  const [demoAccepted, setDemoAccepted] = useState<string[]>([]);
+  const [demoRejected, setDemoRejected] = useState<string[]>([]);
+  const [sentRequests, setSentRequests] = useState<ExchangeRequest[]>([]);
 
-  const pendingReceived = RECEIVED.filter((r) => !accepted.includes(r.id) && !rejected.includes(r.id));
+  useEffect(() => {
+    setSentRequests(loadExchanges().filter((e) => e.direction === 'sent'));
+  }, [subTab]);
+
+  const pendingDemo = DEMO_RECEIVED.filter(
+    (r) => !demoAccepted.includes(r.id) && !demoRejected.includes(r.id)
+  );
+  const receivedBadge = pendingDemo.length;
+
+  const handleStatusChange = (id: string, status: 'accepted' | 'rejected') => {
+    updateStatus(id, status);
+    setSentRequests((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, status } : r))
+    );
+  };
 
   return (
     <div>
@@ -69,8 +80,8 @@ export function MatchTab() {
         <p className="text-xs text-[#9CA3AF] mb-3">AI가 취향을 분석해 최적의 교환 상대를 찾아드려요</p>
         <div className="flex">
           {([
-            { id: 'received' as SubTab, label: '받은 요청', badge: pendingReceived.length },
-            { id: 'sent' as SubTab, label: '보낸 요청', badge: 0 },
+            { id: 'received' as SubTab, label: '받은 요청', badge: receivedBadge },
+            { id: 'sent' as SubTab, label: '보낸 요청', badge: sentRequests.filter(r => r.status === 'pending').length },
           ]).map(({ id, label, badge }) => (
             <button
               key={id}
@@ -95,10 +106,11 @@ export function MatchTab() {
       </div>
 
       <div className="px-4 pt-4 pb-4 space-y-3">
-        {/* Received */}
+
+        {/* ── 받은 요청 탭 ── */}
         {subTab === 'received' && (
           <>
-            {pendingReceived.map((req, idx) => (
+            {pendingDemo.map((req, idx) => (
               <div key={req.id} className="bg-white rounded-2xl border border-[#E5E7EB] overflow-hidden shadow-sm animate-fade-in-up">
                 <div className="p-4 pb-3">
                   <div className="flex items-center gap-3">
@@ -127,14 +139,14 @@ export function MatchTab() {
                 </div>
                 <div className="flex border-t border-[#F3F4F6]">
                   <button
-                    onClick={() => setRejected((p) => [...p, req.id])}
+                    onClick={() => setDemoRejected((p) => [...p, req.id])}
                     className="flex-1 py-3 flex items-center justify-center gap-1.5 text-sm text-[#9CA3AF] hover:bg-red-50 hover:text-red-500 transition-colors"
                   >
                     <X size={16} /> 거절
                   </button>
                   <div className="w-px bg-[#F3F4F6]" />
                   <button
-                    onClick={() => setAccepted((p) => [...p, req.id])}
+                    onClick={() => setDemoAccepted((p) => [...p, req.id])}
                     className="flex-1 py-3 flex items-center justify-center gap-1.5 text-sm text-[#1A6B3C] font-semibold hover:bg-[#E8F5EE] transition-colors"
                   >
                     <Check size={16} /> 수락
@@ -142,14 +154,23 @@ export function MatchTab() {
                 </div>
               </div>
             ))}
-            {accepted.length > 0 && (
+
+            {demoAccepted.length > 0 && (
               <div className="bg-[#E8F5EE] rounded-2xl p-5 text-center animate-scale-in">
                 <p className="text-3xl mb-2">🎉</p>
                 <p className="text-sm font-bold text-[#1A6B3C]">교환 수락 완료!</p>
                 <p className="text-xs text-[#4B9E6A] mt-1">박민준님께 알림이 전송됐어요</p>
               </div>
             )}
-            {pendingReceived.length === 0 && accepted.length === 0 && (
+
+            {demoRejected.length > 0 && pendingDemo.length === 0 && demoAccepted.length === 0 && (
+              <div className="text-center py-8">
+                <p className="text-4xl mb-3">📭</p>
+                <p className="text-sm font-medium text-[#374151]">새로운 요청이 없어요</p>
+              </div>
+            )}
+
+            {pendingDemo.length === 0 && demoAccepted.length === 0 && demoRejected.length === 0 && (
               <div className="text-center py-8">
                 <p className="text-4xl mb-3">📭</p>
                 <p className="text-sm font-medium text-[#374151]">새로운 요청이 없어요</p>
@@ -197,36 +218,71 @@ export function MatchTab() {
           </>
         )}
 
-        {/* Sent */}
+        {/* ── 보낸 요청 탭 ── */}
         {subTab === 'sent' && (
           <>
-            {SENT.map((req, idx) => (
-              <div key={req.id} className="bg-white rounded-2xl p-4 border border-[#E5E7EB] shadow-sm animate-fade-in-up">
-                <div className="flex items-center gap-3">
-                  <Avatar name={req.name} idx={idx + 1} />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-[#111827]">{req.name}</span>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 font-medium flex items-center gap-1">
-                        <Clock size={10} /> 응답 대기
-                      </span>
-                    </div>
-                    <p className="text-xs text-[#9CA3AF] mt-0.5">{req.time} 요청 · {req.matchScore}% 매칭</p>
-                  </div>
-                </div>
-                <div className="mt-3 flex items-center gap-3 p-3 rounded-xl bg-[#F9FAFB]">
-                  <div className="flex-1 flex flex-col items-center gap-1.5">
-                    <BookCover title={req.myBook} author="" size="sm" />
-                    <p className="text-[10px] text-[#9CA3AF]">내 책</p>
-                  </div>
-                  <div className="text-xl text-[#9CA3AF]">⇄</div>
-                  <div className="flex-1 flex flex-col items-center gap-1.5">
-                    <BookCover title={req.theirBook} author={req.theirAuthor} size="sm" />
-                    <p className="text-[10px] text-[#9CA3AF]">상대 책</p>
-                  </div>
-                </div>
+            {sentRequests.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-4xl mb-3">📤</p>
+                <p className="text-sm font-medium text-[#374151]">보낸 요청이 없어요</p>
+                <p className="text-xs text-[#9CA3AF] mt-1">교환 탭에서 원하는 책에 요청해보세요</p>
               </div>
-            ))}
+            ) : (
+              sentRequests.map((req, idx) => {
+                const statusInfo = STATUS_LABEL[req.status];
+                return (
+                  <div key={req.id} className="bg-white rounded-2xl p-4 border border-[#E5E7EB] shadow-sm animate-fade-in-up">
+                    <div className="flex items-center gap-3">
+                      <Avatar name={req.ownerName} idx={idx + 1} />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-[#111827]">{req.ownerName}</span>
+                          <span className={cn('text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1', statusInfo.color)}>
+                            {req.status === 'pending' && <Clock size={10} />}
+                            {req.status === 'accepted' && <Check size={10} />}
+                            {statusInfo.label}
+                          </span>
+                        </div>
+                        <p className="text-xs text-[#9CA3AF] mt-0.5">
+                          {new Date(req.requestedAt).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })} 요청 · {req.matchScore}% 매칭
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-center gap-3 p-3 rounded-xl bg-[#F9FAFB]">
+                      <div className="flex-1 flex flex-col items-center gap-1.5">
+                        <BookCover title={req.seekerBook} author={req.seekerAuthor} size="sm" />
+                        <p className="text-[10px] text-[#9CA3AF]">내 책</p>
+                        <p className="text-[10px] font-medium text-[#374151] text-center leading-tight line-clamp-1">{req.seekerBook}</p>
+                      </div>
+                      <div className="text-xl text-[#9CA3AF]">⇄</div>
+                      <div className="flex-1 flex flex-col items-center gap-1.5">
+                        <BookCover title={req.ownerBook} author={req.ownerAuthor} size="sm" />
+                        <p className="text-[10px] text-[#9CA3AF]">상대 책</p>
+                        <p className="text-[10px] font-medium text-[#374151] text-center leading-tight line-clamp-1">{req.ownerBook}</p>
+                      </div>
+                    </div>
+                    {req.message && (
+                      <p className="mt-2 text-xs text-[#6B7280] bg-[#F9FAFB] rounded-xl px-3 py-2 leading-relaxed">
+                        "{req.message}"
+                      </p>
+                    )}
+                    {req.status === 'pending' && (
+                      <button
+                        onClick={() => handleStatusChange(req.id, 'rejected')}
+                        className="mt-3 w-full py-2 rounded-xl border border-[#E5E7EB] text-xs text-[#9CA3AF] hover:text-red-400 hover:border-red-200 transition-colors"
+                      >
+                        요청 취소
+                      </button>
+                    )}
+                    {req.status === 'accepted' && (
+                      <div className="mt-3 p-3 rounded-xl bg-[#E8F5EE] text-center">
+                        <p className="text-xs font-bold text-[#1A6B3C]">🎉 교환 수락됐어요! 배송을 준비해주세요</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
           </>
         )}
 
