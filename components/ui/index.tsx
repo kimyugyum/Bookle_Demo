@@ -226,11 +226,23 @@ export function StepShell({
 export { BookCover } from './BookCover';
 
 // ── Logo ──────────────────────────────────────────────
+import Image from 'next/image';
+
+const LOGO_SIZES = {
+  sm: { w: 80,  h: 45  },
+  md: { w: 120, h: 68  },
+  lg: { w: 180, h: 101 },
+};
+
 export function BookleLogo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
-  const sizes = { sm: 'text-xl', md: 'text-3xl', lg: 'text-5xl' };
+  const { w, h } = LOGO_SIZES[size];
   return (
-    <div className={cn('font-black tracking-tight text-[#1A6B3C]', sizes[size])}>
-      <span className="text-[#1A6B3C]">B</span>ookle
-    </div>
+    <Image
+      src="/logo.png"
+      alt="Bookle"
+      width={w}
+      height={h}
+      className="rounded-lg"
+    />
   );
 }

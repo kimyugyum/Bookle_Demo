@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { Button } from '@/components/ui';
 
 interface SplashStepProps {
@@ -17,39 +18,31 @@ export function SplashStep({ onNext }: SplashStepProps) {
       </div>
 
       {/* Center content */}
-      <div className="flex flex-col items-center gap-8 animate-fade-in-up">
-        {/* Logo mark */}
-        <div className="relative">
-          <div className="w-28 h-28 rounded-3xl bg-white/15 flex items-center justify-center backdrop-blur-sm border border-white/20">
-            <span className="text-6xl font-black text-white tracking-tighter">B</span>
-          </div>
-          <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-[#F0C040] flex items-center justify-center">
-            <span className="text-sm">📚</span>
-          </div>
-        </div>
+      <div className="flex flex-col items-center gap-6 animate-fade-in-up">
+        {/* Logo image */}
+        <Image
+          src="/logo.png"
+          alt="Bookle"
+          width={280}
+          height={158}
+          priority
+          className="drop-shadow-2xl"
+        />
 
-        {/* Brand name */}
-        <div className="text-center space-y-3">
-          <h1 className="text-6xl font-black text-white tracking-tight">
-            Bookle
-          </h1>
-          <p className="text-[#A8D5B8] text-lg font-light tracking-wide">
-            책이 연결하는 사람들의 이야기
-          </p>
-        </div>
+        <p className="text-[#A8D5B8] text-lg font-light tracking-wide">
+          책이 연결하는 사람들의 이야기
+        </p>
 
         {/* Feature pills */}
-        <div className="flex flex-wrap justify-center gap-2 mt-2">
-          {['C2C 책 교환', 'AI 취향 매칭', '독서 커뮤니티', '텍스트힙'].map(
-            (f) => (
-              <span
-                key={f}
-                className="px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-white/80 text-xs font-medium"
-              >
-                {f}
-              </span>
-            )
-          )}
+        <div className="flex flex-wrap justify-center gap-2">
+          {['C2C 책 교환', 'AI 취향 매칭', '독서 커뮤니티', '텍스트힙'].map((f) => (
+            <span
+              key={f}
+              className="px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-white/80 text-xs font-medium"
+            >
+              {f}
+            </span>
+          ))}
         </div>
       </div>
 
