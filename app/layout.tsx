@@ -4,6 +4,10 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Bookle | 책이 연결하는 사람들의 이야기',
   description: 'C2C 실물 책 교환 · 독서 커뮤니티 · AI 취향 매칭 플랫폼',
+  icons: {
+    icon: '/logo-v2.png',
+    apple: '/logo-v2.png',
+  },
 };
 
 export default function RootLayout({

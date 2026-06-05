@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { Search, ChevronRight, TrendingUp, Heart, Repeat2, MessageCircle } from 'lucide-react';
 import { BookCover } from '@/components/ui/BookCover';
 import { GENRE_LABELS, genreLabels } from '@/lib/user-store';
@@ -165,7 +166,7 @@ export function HomeTab({ user, isFirstVisit, onTabChange }: HomeTabProps) {
         </section>
 
         {/* ── 커뮤니티 인기글 ── */}
-        <section className="pb-4">
+        <section>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-1.5">
               <MessageCircle size={15} className="text-[#1A6B3C]" />
@@ -201,6 +202,30 @@ export function HomeTab({ user, isFirstVisit, onTabChange }: HomeTabProps) {
         </section>
 
       </div>
+
+      {/* ── 푸터 ── */}
+      <footer className="mt-2 px-4 pb-6 border-t border-[#F3F4F6] pt-5">
+        <div className="flex items-center justify-center mb-3">
+          <Image
+            src="/logo-v2.png"
+            alt="Bookle"
+            width={40}
+            height={23}
+            style={{ filter: 'brightness(0) saturate(100%) invert(27%) sepia(92%) saturate(410%) hue-rotate(100deg) brightness(97%)' }}
+          />
+        </div>
+        <p className="text-center text-[10px] text-[#9CA3AF] leading-relaxed">
+          책이 연결하는 사람들의 이야기
+        </p>
+        <div className="flex justify-center gap-4 mt-3">
+          {['이용약관', '개인정보처리방침', '고객센터'].map((label) => (
+            <button key={label} className="text-[10px] text-[#9CA3AF] hover:text-[#6B7280] transition-colors">
+              {label}
+            </button>
+          ))}
+        </div>
+        <p className="text-center text-[9px] text-[#D1D5DB] mt-3">© 2025 Bookle. All rights reserved.</p>
+      </footer>
     </div>
   );
 }

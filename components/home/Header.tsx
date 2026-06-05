@@ -85,7 +85,7 @@ export function Header({ user, onTabChange }: HeaderProps) {
 
       {/* Drawer overlay */}
       {open && (
-        <div className={`fixed inset-0 z-50 flex transition-opacity duration-200 ${closing ? 'opacity-0' : 'opacity-100'}`}>
+        <div className={`fixed inset-0 z-60 flex transition-opacity duration-200 ${closing ? 'opacity-0' : 'opacity-100'}`}>
           {/* Drawer panel */}
           <div className={`w-64 h-full flex flex-col ${closing ? 'drawer-exit' : 'drawer-enter'}`}
             style={{ background: 'rgba(10,40,25,0.72)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)' }}
