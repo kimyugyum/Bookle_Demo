@@ -65,12 +65,11 @@ export function VerifyStep({ onNext, onBack }: VerifyStepProps) {
   const mmss = `${String(Math.floor(timer / 60)).padStart(2, '0')}:${String(timer % 60).padStart(2, '0')}`;
 
   return (
-    <StepShell step={3} totalSteps={5} onBack={onBack}
-      stepLabels={['회원가입', '인증', '취향', '책 등록', '매칭']}
+    <StepShell step={2} totalSteps={5} onBack={onBack}
+      stepLabels={['회원가입', '회원가입', '취향', '책 등록', '매칭']}
     >
       <div className="space-y-6 animate-fade-in-up">
-        <div className="space-y-1">
-          <BookleLogo size="sm" />
+        <div className="flex flex-col items-center text-center space-y-1">
           <h2 className="text-xl font-bold text-[#111827]">본인 인증</h2>
           <p className="text-sm text-[#6B7280]">안전한 거래를 위해 휴대폰을 인증해 주세요</p>
         </div>
@@ -135,7 +134,7 @@ export function VerifyStep({ onNext, onBack }: VerifyStepProps) {
               ))}
             </div>
             <p className="text-xs text-[#9CA3AF]">
-              {verified ? '✅ 인증 완료!' : '데모용 인증번호: 123456'}
+              {verified ? '인증 완료!' : '데모용 인증번호: 123456'}
             </p>
           </div>
         )}
@@ -143,12 +142,33 @@ export function VerifyStep({ onNext, onBack }: VerifyStepProps) {
         {/* Trust badges */}
         <div className="flex gap-3 p-3 rounded-2xl bg-[#F9FAFB] border border-[#E5E7EB]">
           {[
-            { icon: '🔒', text: '개인정보 암호화' },
-            { icon: '✅', text: '실명 인증' },
-            { icon: '🛡️', text: '안전 거래 보장' },
+            {
+              icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                </svg>
+              ),
+              text: '개인정보 암호화',
+            },
+            {
+              icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              ),
+              text: '실명 인증',
+            },
+            {
+              icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l7.5 3v5.25c0 4.154-2.894 7.836-7.5 9-4.606-1.164-7.5-4.846-7.5-9V6L12 3z" />
+                </svg>
+              ),
+              text: '안전 거래 보장',
+            },
           ].map((b) => (
-            <div key={b.text} className="flex-1 flex flex-col items-center gap-1">
-              <span className="text-lg">{b.icon}</span>
+            <div key={b.text} className="flex-1 flex flex-col items-center gap-1.5 text-[#1A6B3C]">
+              {b.icon}
               <span className="text-xs text-[#6B7280] text-center">{b.text}</span>
             </div>
           ))}
@@ -160,7 +180,7 @@ export function VerifyStep({ onNext, onBack }: VerifyStepProps) {
           loading={verifying}
           onClick={() => onNext(phone)}
         >
-          {verified ? '다음으로' : '인증을 완료해 주세요'}
+          {verified ? '다음' : '인증을 완료해 주세요'}
         </Button>
       </div>
     </StepShell>

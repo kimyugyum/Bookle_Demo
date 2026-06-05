@@ -20,8 +20,13 @@
 
 body {
   background-color: #F9FAFB;
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button, input, textarea, select {
+  font-family: inherit;
 }
 
 @keyframes fadeInUp {
@@ -46,6 +51,37 @@ body {
 .animate-fade-in-up { animation: fadeInUp 0.45s ease both; }
 .animate-fade-in    { animation: fadeIn 0.35s ease both; }
 .animate-scale-in   { animation: scaleIn 0.4s ease both; }
+
+@keyframes logoFloat {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-10px); }
+}
+
+@keyframes logoGlow {
+  0%, 100% { filter: drop-shadow(0 0 0px rgba(255,255,255,0)); }
+  50%       { filter: drop-shadow(0 0 28px rgba(255,255,255,0.35)) drop-shadow(0 8px 16px rgba(255,255,255,0.15)); }
+}
+
+.animate-logo-entrance {
+  animation: scaleIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.animate-logo-loop {
+  animation:
+    logoFloat 3.2s ease-in-out infinite,
+    logoGlow  3.2s ease-in-out infinite;
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+@keyframes slideOutLeft {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
+}
+
+.drawer-enter { animation: slideInLeft 0.28s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.drawer-exit  { animation: slideOutLeft 0.22s ease-in both; }
 
 .delay-100 { animation-delay: 0.1s; }
 .delay-200 { animation-delay: 0.2s; }

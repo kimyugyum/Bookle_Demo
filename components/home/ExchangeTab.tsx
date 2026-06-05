@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, SlidersHorizontal, Star, MapPin } from 'lucide-react';
+import { Search, SlidersHorizontal, Star, MapPin, ArrowLeftRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GENRE_LABELS } from '@/lib/user-store';
 import { BookCover } from '@/components/ui/BookCover';
@@ -48,8 +48,12 @@ export function ExchangeTab({ userGenres = [] }: ExchangeTabProps) {
   return (
     <div>
       {/* Sticky header */}
-      <div className="bg-white border-b border-[#F3F4F6] px-4 pt-14 pb-3 sticky top-0 z-10">
-        <h1 className="text-lg font-bold text-[#111827] mb-3">책 교환</h1>
+      <div className="bg-white border-b border-[#F3F4F6] px-4 pt-4 pb-3 sticky top-0 z-10">
+        <div className="flex items-center gap-2 mb-1">
+          <ArrowLeftRight size={18} className="text-[#1A6B3C]" />
+          <h1 className="text-lg font-bold text-[#111827]">책 교환</h1>
+        </div>
+        <p className="text-xs text-[#9CA3AF] mb-3">읽은 책을 나누고, 원하는 책을 얻어보세요</p>
         <div className="flex gap-2">
           <div className="flex-1 flex items-center gap-2 bg-[#F3F4F6] rounded-xl px-3 h-10">
             <Search size={15} className="text-[#9CA3AF] shrink-0" />

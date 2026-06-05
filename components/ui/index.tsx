@@ -191,16 +191,15 @@ export function StepShell({
       >
         {/* Top bar */}
         {(onBack || (step && totalSteps)) && (
-          <div className="px-6 pt-6 pb-2 flex items-center gap-4">
+          <div className="px-6 pt-4 pb-2 flex items-center gap-4">
             {onBack ? (
               <button
                 onClick={onBack}
-                className="flex items-center gap-1 text-sm text-[#6B7280] hover:text-[#374151] transition-colors"
+                className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 text-[#6B7280] hover:text-[#374151] transition-colors"
               >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M19 12H5M12 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                뒤로
               </button>
             ) : (
               <div className="w-10" />
@@ -216,7 +215,7 @@ export function StepShell({
             )}
           </div>
         )}
-        <div className="p-6 pt-4">{children}</div>
+        <div className="px-6 pb-6 pt-4">{children}</div>
       </div>
     </div>
   );
@@ -229,19 +228,21 @@ export { BookCover } from './BookCover';
 import Image from 'next/image';
 
 const LOGO_SIZES = {
-  sm: { w: 80,  h: 45  },
-  md: { w: 120, h: 68  },
-  lg: { w: 180, h: 101 },
+  sm: { w: 64,  h: 36  },
+  md: { w: 100, h: 56  },
+  lg: { w: 160, h: 90  },
 };
 
-export function BookleLogo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
+export function BookleLogo({ size = 'md', className }: { size?: 'sm' | 'md' | 'lg'; className?: string }) {
   const { w, h } = LOGO_SIZES[size];
   return (
     <Image
-      src="/logo.png"
+      src="/logo-v2.png"
       alt="Bookle"
       width={w}
       height={h}
+      className={className}
+      style={{ filter: 'brightness(0) saturate(100%) invert(27%) sepia(56%) saturate(585%) hue-rotate(99deg) brightness(94%) contrast(96%)' }}
     />
   );
 }

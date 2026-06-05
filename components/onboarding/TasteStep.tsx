@@ -38,12 +38,11 @@ export function TasteStep({ onNext, onBack }: TasteStepProps) {
   };
 
   return (
-    <StepShell step={4} totalSteps={5} onBack={onBack}
+    <StepShell step={3} totalSteps={5} onBack={onBack}
       stepLabels={['회원가입', '인증', '취향', '책 등록', '매칭']}
     >
       <div className="space-y-5 animate-fade-in-up">
-        <div className="space-y-1">
-          <BookleLogo size="sm" />
+        <div className="flex flex-col items-center text-center space-y-1">
           <h2 className="text-xl font-bold text-[#111827]">독서 취향 설정</h2>
           <p className="text-sm text-[#6B7280]">
             관심 장르를 선택하면 AI가 딱 맞는 교환 상대를 찾아드려요

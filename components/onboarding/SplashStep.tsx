@@ -1,63 +1,56 @@
 'use client';
 
 import Image from 'next/image';
-import { Button } from '@/components/ui';
+import { useState } from 'react';
 
 interface SplashStepProps {
   onNext: () => void;
 }
 
 export function SplashStep({ onNext }: SplashStepProps) {
+  const [logoReady, setLogoReady] = useState(false);
+
   return (
-    <div className="min-h-screen bg-[#1A6B3C] flex flex-col items-center justify-between p-8">
-      {/* Top label */}
-      <div className="w-full flex justify-end pt-2">
-        <span className="text-[#A8D5B8] text-xs font-medium tracking-widest uppercase">
-          C2C 독서 플랫폼
-        </span>
-      </div>
+    <div className="min-h-screen bg-[#1A6B3C] flex flex-col items-center">
 
       {/* Center content */}
-      <div className="flex flex-col items-center gap-6 animate-fade-in-up">
-        {/* Logo image */}
-        <Image
-          src="/logo.png"
-          alt="Bookle"
-          width={280}
-          height={158}
-          priority
-          className="drop-shadow-[0_4px_24px_rgba(255,255,255,0.25)]"
-        />
+      <div className="flex-1 flex flex-col items-center justify-center px-8 gap-6">
 
-        <p className="text-[#A8D5B8] text-lg font-light tracking-wide">
-          책이 연결하는 사람들의 이야기
-        </p>
+        {/* Logo */}
+        <div className={logoReady ? 'animate-logo-loop' : 'animate-logo-entrance'}>
+          <Image
+            src="/logo-v2.png"
+            alt="Bookle"
+            width={240}
+            height={135}
+            priority
+            onLoad={() => setTimeout(() => setLogoReady(true), 600)}
+          />
+        </div>
 
-        {/* Feature pills */}
-        <div className="flex flex-wrap justify-center gap-2">
-          {['C2C 책 교환', 'AI 취향 매칭', '독서 커뮤니티', '텍스트힙'].map((f) => (
-            <span
-              key={f}
-              className="px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-white/80 text-xs font-medium"
-            >
-              {f}
-            </span>
-          ))}
+        {/* Tagline */}
+        <div className="text-center space-y-1.5 animate-fade-in-up">
+          <p className="text-white text-lg font-semibold">
+            책이 연결하는 사람들의 이야기
+          </p>
+          <p className="text-[#A8D5B8] text-sm font-normal">
+            취향 맞는 사람과 책을 교환해보세요
+          </p>
         </div>
       </div>
 
-      {/* Bottom CTA */}
-      <div className="w-full max-w-xs space-y-3 animate-fade-in delay-300">
-        <Button
-          size="lg"
+      {/* Bottom CTA — pinned */}
+      <div className="w-full px-6 pb-12 space-y-3 animate-fade-in delay-300">
+        <button
           onClick={onNext}
-          className="bg-white text-[#1A6B3C] hover:bg-[#F0FFF4] font-bold text-base shadow-2xl"
+          className="w-full h-14 rounded-2xl bg-white font-bold text-base text-[#1A6B3C] active:scale-[0.98] transition-transform"
+          style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.15)' }}
         >
           시작하기
-        </Button>
-        <p className="text-center text-[#A8D5B8] text-xs">
+        </button>
+        <p className="text-center text-sm text-[#A8D5B8]">
           이미 계정이 있으신가요?{' '}
-          <span className="text-white underline cursor-pointer">로그인</span>
+          <span className="text-white font-semibold cursor-pointer">로그인</span>
         </p>
       </div>
     </div>
