@@ -52,9 +52,9 @@ export function Header({ user, onTabChange }: HeaderProps) {
         </button>
 
         {/* Center — logo (absolute so it doesn't squeeze sides) */}
-        <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">
+        <button className="absolute left-1/2 -translate-x-1/2" onClick={() => onTabChange?.('home')}>
           <Image src="/logo-v2.png" alt="Bookle" width={46} height={26} priority />
-        </div>
+        </button>
 
         {/* Right — user + bell */}
         <div className="ml-auto flex items-center gap-2">
