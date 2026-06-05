@@ -242,7 +242,6 @@ export function BookleLogo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
       alt="Bookle"
       width={w}
       height={h}
-      className="rounded-lg"
     />
   );
 }

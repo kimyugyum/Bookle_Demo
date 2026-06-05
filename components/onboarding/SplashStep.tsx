@@ -26,7 +26,7 @@ export function SplashStep({ onNext }: SplashStepProps) {
           width={280}
           height={158}
           priority
-          className="drop-shadow-2xl"
+          className="drop-shadow-[0_4px_24px_rgba(255,255,255,0.25)]"
         />
 
         <p className="text-[#A8D5B8] text-lg font-light tracking-wide">
