@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Sparkles, Check, X, ChevronRight, Clock, ArrowLeftRight } from 'lucide-react';
+import { Sparkles, Check, X, ChevronRight, Clock, ArrowLeftRight, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BookCover } from '@/components/ui/BookCover';
 import { useAppStore } from '@/lib/store';
 import { DEMO_RECEIVED, AI_RECS } from '@/lib/mock-data';
+import { ChatModal, type ChatPartner } from './ChatModal';
 
 type SubTab = 'received' | 'sent';
 
@@ -34,6 +35,7 @@ export function MatchTab() {
   const [subTab, setSubTab] = useState<SubTab>('received');
   const [demoAccepted, setDemoAccepted] = useState<string[]>([]);
   const [demoRejected, setDemoRejected] = useState<string[]>([]);
+  const [chatPartner, setChatPartner] = useState<ChatPartner | null>(null);
 
   const sentRequests = exchanges.filter((e) => e.direction === 'sent');
 
@@ -137,6 +139,12 @@ export function MatchTab() {
                 <p className="text-3xl mb-2">🎉</p>
                 <p className="text-sm font-bold text-[#1A6B3C]">교환 수락 완료!</p>
                 <p className="text-xs text-[#4B9E6A] mt-1">박민준님께 알림이 전송됐어요</p>
+                <button
+                  onClick={() => setChatPartner({ name: '박민준', theirBook: '채식주의자', myBook: '불편한 편의점' })}
+                  className="mt-3 w-full py-2.5 rounded-xl bg-[#1A6B3C] text-white text-sm font-bold flex items-center justify-center gap-1.5"
+                >
+                  <MessageSquare size={15} /> 채팅하기
+                </button>
               </div>
             )}
 
@@ -252,8 +260,16 @@ export function MatchTab() {
                       </button>
                     )}
                     {req.status === 'accepted' && (
-                      <div className="mt-3 p-3 rounded-xl bg-[#E8F5EE] text-center">
-                        <p className="text-xs font-bold text-[#1A6B3C]">🎉 교환 수락됐어요! 배송을 준비해주세요</p>
+                      <div className="mt-3 space-y-2">
+                        <div className="p-3 rounded-xl bg-[#E8F5EE] text-center">
+                          <p className="text-xs font-bold text-[#1A6B3C]">🎉 교환 수락됐어요! 배송을 준비해주세요</p>
+                        </div>
+                        <button
+                          onClick={() => setChatPartner({ name: req.ownerName, theirBook: req.ownerBook, myBook: req.seekerBook })}
+                          className="w-full py-2.5 rounded-xl bg-[#1A6B3C] text-white text-xs font-bold flex items-center justify-center gap-1.5"
+                        >
+                          <MessageSquare size={14} /> 채팅하기
+                        </button>
                       </div>
                     )}
                   </div>
@@ -264,6 +280,10 @@ export function MatchTab() {
         )}
 
       </div>
+
+      {chatPartner && (
+        <ChatModal partner={chatPartner} onClose={() => setChatPartner(null)} />
+      )}
     </div>
   );
 }
