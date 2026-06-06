@@ -1,27 +1,33 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronRight, Bell, Shield, HelpCircle, LogOut, Pencil, CheckCircle2, Circle, ArrowRight } from 'lucide-react';
-import { genreLabels, completionSteps, completionPct } from '@/lib/user-store';
+import {
+  ChevronRight, Bell, Shield, HelpCircle, LogOut, Pencil,
+  CheckCircle2, Circle, ArrowRight, X, Truck, PackageCheck, Trash2,
+} from 'lucide-react';
+import { genreLabels, completionSteps, completionPct, GENRE_LABELS } from '@/lib/user-store';
 import { useAppStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { BookCover } from '@/components/ui/BookCover';
 import type { AppTab } from '@/types/app';
+import type { BookData } from '@/types/onboarding';
 
 interface ProfileTabProps {
   onTabChange?: (tab: AppTab) => void;
 }
 
 const SETTINGS_ITEMS = [
-  { Icon: Bell,        label: '알림 설정',    sub: '새 요청, 메시지 알림' },
-  { Icon: Shield,      label: '개인정보 보호', sub: '계정 보안 관리' },
-  { Icon: HelpCircle,  label: '고객센터',     sub: 'FAQ, 문의하기' },
+  { Icon: Bell,       label: '알림 설정',    sub: '새 요청, 메시지 알림' },
+  { Icon: Shield,     label: '개인정보 보호', sub: '계정 보안 관리' },
+  { Icon: HelpCircle, label: '고객센터',     sub: 'FAQ, 문의하기' },
 ];
 
 const STATUS_INFO: Record<string, { label: string; color: string }> = {
-  pending:  { label: '응답 대기', color: 'bg-amber-50 text-amber-600' },
-  accepted: { label: '수락됨',   color: 'bg-[#E8F5EE] text-[#1A6B3C]' },
-  rejected: { label: '거절됨',   color: 'bg-red-50 text-red-400' },
+  pending:   { label: '응답 대기', color: 'bg-amber-50 text-amber-600' },
+  accepted:  { label: '수락됨',   color: 'bg-[#E8F5EE] text-[#1A6B3C]' },
+  shipping:  { label: '배송 중',  color: 'bg-blue-50 text-blue-600' },
+  completed: { label: '교환 완료', color: 'bg-purple-50 text-purple-600' },
+  rejected:  { label: '거절됨',   color: 'bg-red-50 text-red-400' },
 };
 
 const AVATAR_COLORS = ['#7C3AED', '#DB2777', '#0284C7', '#D97706', '#059669'];
@@ -31,25 +37,191 @@ function nameToColor(name: string) {
   return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
 }
 
+const ALL_GENRE_IDS = Object.keys(GENRE_LABELS);
+
 type ExSubTab = 'ongoing' | 'completed';
 
+// ── 장르 편집 모달 ──────────────────────────────────────────────
+function GenreEditModal({
+  current,
+  onSave,
+  onClose,
+}: {
+  current: string[];
+  onSave: (genres: string[]) => void;
+  onClose: () => void;
+}) {
+  const [selected, setSelected] = useState<string[]>(current);
+
+  const toggle = (id: string) => {
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((g) => g !== id) : prev.length < 5 ? [...prev, id] : prev
+    );
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/40" />
+      <div
+        className="relative w-full max-w-md bg-white rounded-t-3xl px-5 pt-5 pb-8 animate-slide-up"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-base font-bold text-[#111827]">관심 장르 편집</h2>
+            <p className="text-xs text-[#9CA3AF] mt-0.5">최대 5개 선택</p>
+          </div>
+          <button onClick={onClose} className="p-1 text-[#9CA3AF]"><X size={20} /></button>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 mb-5">
+          {ALL_GENRE_IDS.map((id) => {
+            const isOn = selected.includes(id);
+            return (
+              <button
+                key={id}
+                onClick={() => toggle(id)}
+                className={cn(
+                  'py-3 rounded-2xl border text-xs font-semibold transition-all',
+                  isOn
+                    ? 'border-[#1A6B3C] bg-[#E8F5EE] text-[#1A6B3C]'
+                    : 'border-[#E5E7EB] bg-white text-[#6B7280]'
+                )}
+              >
+                {GENRE_LABELS[id]}
+              </button>
+            );
+          })}
+        </div>
+
+        <button
+          onClick={() => { onSave(selected); onClose(); }}
+          disabled={selected.length === 0}
+          className="w-full py-3 rounded-2xl bg-[#1A6B3C] text-white text-sm font-bold disabled:opacity-40"
+        >
+          {selected.length}개 선택 완료
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── 도서 편집 모달 ──────────────────────────────────────────────
+function BookEditModal({
+  initial,
+  onSave,
+  onClose,
+}: {
+  initial: BookData | null;
+  onSave: (book: BookData) => void;
+  onClose: () => void;
+}) {
+  const [title, setTitle]           = useState(initial?.title ?? '');
+  const [author, setAuthor]         = useState(initial?.author ?? '');
+  const [condition, setCondition]   = useState<'A' | 'B' | 'C'>(initial?.condition ?? 'A');
+  const [description, setDescription] = useState(initial?.description ?? '');
+
+  const canSave = title.trim().length > 0 && author.trim().length > 0;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/40" />
+      <div
+        className="relative w-full max-w-md bg-white rounded-t-3xl px-5 pt-5 pb-8 animate-slide-up"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-bold text-[#111827]">도서 정보 수정</h2>
+          <button onClick={onClose} className="p-1 text-[#9CA3AF]"><X size={20} /></button>
+        </div>
+
+        <div className="space-y-3 mb-5">
+          <div>
+            <label className="text-xs font-medium text-[#374151] mb-1.5 block">책 제목</label>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="책 제목"
+              className="w-full h-10 rounded-xl border border-[#E5E7EB] px-3 text-sm focus:border-[#1A6B3C] focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-[#374151] mb-1.5 block">저자</label>
+            <input
+              value={author}
+              onChange={(e) => setAuthor(e.target.value)}
+              placeholder="저자"
+              className="w-full h-10 rounded-xl border border-[#E5E7EB] px-3 text-sm focus:border-[#1A6B3C] focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-[#374151] mb-1.5 block">책 상태</label>
+            <div className="flex gap-2">
+              {(['A', 'B', 'C'] as const).map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setCondition(c)}
+                  className={cn(
+                    'flex-1 py-2 rounded-xl text-xs font-semibold border transition-all',
+                    condition === c
+                      ? 'border-[#1A6B3C] bg-[#E8F5EE] text-[#1A6B3C]'
+                      : 'border-[#E5E7EB] text-[#6B7280]'
+                  )}
+                >
+                  {c === 'A' ? '최상 (A)' : c === 'B' ? '상 (B)' : '중 (C)'}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-[#374151] mb-1.5 block">한 줄 소개 (선택)</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="책에 대한 간단한 소개"
+              rows={2}
+              className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2 text-sm focus:border-[#1A6B3C] focus:outline-none resize-none"
+            />
+          </div>
+        </div>
+
+        <button
+          onClick={() => { onSave({ title, author, condition, description }); onClose(); }}
+          disabled={!canSave}
+          className="w-full py-3 rounded-2xl bg-[#1A6B3C] text-white text-sm font-bold disabled:opacity-40"
+        >
+          저장하기
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── ProfileTab ──────────────────────────────────────────────
 export function ProfileTab({ onTabChange }: ProfileTabProps) {
-  const user      = useAppStore((s) => s.user);
-  const exchanges = useAppStore((s) => s.exchanges);
-  const logout    = useAppStore((s) => s.logout);
+  const user               = useAppStore((s) => s.user);
+  const exchanges          = useAppStore((s) => s.exchanges);
+  const logout             = useAppStore((s) => s.logout);
+  const updateExchangeStatus = useAppStore((s) => s.updateExchangeStatus);
+  const updateGenres       = useAppStore((s) => s.updateGenres);
+  const updateBook         = useAppStore((s) => s.updateBook);
+  const removeBook         = useAppStore((s) => s.removeBook);
 
   const displayGenres = genreLabels(user?.genres ?? []);
   const bookCount = user?.book ? 1 : 0;
-  const pct = completionPct(user);
+  const pct   = completionPct(user);
   const steps = completionSteps(user);
   const nextStep = steps.find((s) => !s.done);
 
-  const [exSubTab, setExSubTab] = useState<ExSubTab>('ongoing');
+  const [exSubTab, setExSubTab]     = useState<ExSubTab>('ongoing');
+  const [genreModal, setGenreModal] = useState(false);
+  const [bookModal, setBookModal]   = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const ongoingList   = exchanges.filter((e) => e.status === 'pending');
-  const completedList = exchanges.filter((e) => e.status === 'accepted' || e.status === 'rejected');
+  const ongoingList   = exchanges.filter((e) => ['pending', 'accepted', 'shipping'].includes(e.status));
+  const completedList = exchanges.filter((e) => ['completed', 'rejected'].includes(e.status));
   const displayList   = exSubTab === 'ongoing' ? ongoingList : completedList;
-  const doneCount     = completedList.filter((e) => e.status === 'accepted').length;
+  const doneCount     = exchanges.filter((e) => e.status === 'completed').length;
 
   return (
     <div>
@@ -144,7 +316,6 @@ export function ProfileTab({ onTabChange }: ProfileTabProps) {
               </button>
             </div>
 
-            {/* 서브 탭 */}
             <div className="flex border-b border-[#F3F4F6] mx-4">
               {([
                 { id: 'ongoing'   as ExSubTab, label: '진행 중',  count: ongoingList.length },
@@ -225,10 +396,34 @@ export function ProfileTab({ onTabChange }: ProfileTabProps) {
                             <p className="text-[10px] text-[#374151] font-medium line-clamp-2 leading-tight">{req.ownerBook}</p>
                           </div>
                         </div>
+
+                        {/* 상태별 액션 버튼 */}
+                        {req.status === 'pending' && req.direction === 'sent' && (
+                          <button
+                            onClick={() => updateExchangeStatus(req.id, 'rejected')}
+                            className="mt-2 w-full py-2 rounded-xl border border-[#E5E7EB] text-xs text-[#9CA3AF] hover:text-red-400 hover:border-red-200 transition-colors"
+                          >
+                            요청 취소
+                          </button>
+                        )}
                         {req.status === 'accepted' && (
-                          <p className="text-[10px] font-bold text-[#1A6B3C] text-center mt-2">
-                            🎉 교환 수락됐어요! 배송을 준비해주세요
-                          </p>
+                          <button
+                            onClick={() => updateExchangeStatus(req.id, 'shipping')}
+                            className="mt-2 w-full py-2 rounded-xl bg-blue-50 border border-blue-200 text-xs text-blue-600 font-semibold flex items-center justify-center gap-1.5 hover:bg-blue-100 transition-colors"
+                          >
+                            <Truck size={13} /> 배송 완료 신고
+                          </button>
+                        )}
+                        {req.status === 'shipping' && (
+                          <button
+                            onClick={() => updateExchangeStatus(req.id, 'completed')}
+                            className="mt-2 w-full py-2 rounded-xl bg-[#E8F5EE] border border-[#A8D5B8] text-xs text-[#1A6B3C] font-semibold flex items-center justify-center gap-1.5 hover:bg-[#d4ede0] transition-colors"
+                          >
+                            <PackageCheck size={13} /> 수령 확인 완료
+                          </button>
+                        )}
+                        {req.status === 'completed' && (
+                          <p className="text-[10px] font-bold text-purple-600 text-center mt-2">✅ 교환이 완료됐어요!</p>
                         )}
                       </div>
                     );
@@ -243,7 +438,14 @@ export function ProfileTab({ onTabChange }: ProfileTabProps) {
         <div className="bg-white rounded-2xl p-4 border border-[#E5E7EB] shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-bold text-[#111827]">관심 장르</h3>
-            <button className="text-xs text-[#1A6B3C] font-medium">편집</button>
+            {user && (
+              <button
+                onClick={() => setGenreModal(true)}
+                className="text-xs text-[#1A6B3C] font-medium"
+              >
+                편집
+              </button>
+            )}
           </div>
           {displayGenres.length > 0 ? (
             <div className="flex gap-2 flex-wrap">
@@ -262,20 +464,35 @@ export function ProfileTab({ onTabChange }: ProfileTabProps) {
         <div className="bg-white rounded-2xl p-4 border border-[#E5E7EB] shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-bold text-[#111827]">내 도서 목록</h3>
-            <button className="text-xs text-[#1A6B3C] font-medium">+ 추가</button>
+            {user && !user.book && (
+              <button
+                onClick={() => setBookModal(true)}
+                className="text-xs text-[#1A6B3C] font-medium"
+              >
+                + 추가
+              </button>
+            )}
           </div>
           {user?.book ? (
             <div className="flex items-center gap-3 p-3 rounded-xl bg-[#F9FAFB]">
               <BookCover title={user.book.title} author={user.book.author} size="xs" />
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-[#111827]">{user.book.title}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-[#111827] line-clamp-1">{user.book.title}</p>
                 <p className="text-xs text-[#6B7280]">{user.book.author}</p>
               </div>
-              <div className="text-right">
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-[#E8F5EE] text-[#1A6B3C]">
-                  상태 {user.book.condition}
-                </span>
-                <p className="text-[10px] text-amber-500 mt-1 font-medium">교환 대기 중</p>
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  onClick={() => setBookModal(true)}
+                  className="w-7 h-7 rounded-lg bg-[#F3F4F6] flex items-center justify-center hover:bg-[#E8F5EE] transition-colors"
+                >
+                  <Pencil size={12} className="text-[#6B7280]" />
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(true)}
+                  className="w-7 h-7 rounded-lg bg-[#F3F4F6] flex items-center justify-center hover:bg-red-50 transition-colors"
+                >
+                  <Trash2 size={12} className="text-[#9CA3AF] hover:text-red-400" />
+                </button>
               </div>
             </div>
           ) : (
@@ -289,9 +506,7 @@ export function ProfileTab({ onTabChange }: ProfileTabProps) {
         <div className="bg-white rounded-2xl p-4 border border-[#E5E7EB] shadow-sm">
           <div className="flex items-center gap-2 mb-3">
             <h3 className="text-sm font-bold text-[#111827]">독서 기록</h3>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#E8F5EE] text-[#1A6B3C] font-medium">
-              Book Passport
-            </span>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#E8F5EE] text-[#1A6B3C] font-medium">Book Passport</span>
           </div>
           {doneCount > 0 ? (
             <div className="space-y-3">
@@ -306,8 +521,8 @@ export function ProfileTab({ onTabChange }: ProfileTabProps) {
                 </div>
               </div>
               <div className="space-y-2">
-                {completedList
-                  .filter((e) => e.status === 'accepted')
+                {exchanges
+                  .filter((e) => e.status === 'completed')
                   .map((req) => (
                     <div key={req.id} className="flex items-center gap-2 p-2.5 rounded-xl bg-[#F9FAFB]">
                       <span className="text-base">📖</span>
@@ -361,6 +576,53 @@ export function ProfileTab({ onTabChange }: ProfileTabProps) {
           <LogOut size={15} /> 로그아웃
         </button>
       </div>
+
+      {/* ── 장르 편집 모달 ── */}
+      {genreModal && (
+        <GenreEditModal
+          current={user?.genres ?? []}
+          onSave={updateGenres}
+          onClose={() => setGenreModal(false)}
+        />
+      )}
+
+      {/* ── 도서 편집 모달 ── */}
+      {bookModal && (
+        <BookEditModal
+          initial={user?.book ?? null}
+          onSave={updateBook}
+          onClose={() => setBookModal(false)}
+        />
+      )}
+
+      {/* ── 도서 삭제 확인 ── */}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={() => setConfirmDelete(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div
+            className="relative w-full max-w-sm bg-white rounded-3xl p-6 text-center animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-2xl mb-2">🗑️</p>
+            <p className="text-base font-bold text-[#111827] mb-1">도서를 삭제할까요?</p>
+            <p className="text-xs text-[#9CA3AF] mb-5">삭제하면 교환 요청을 받을 수 없어요</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setConfirmDelete(false)}
+                className="flex-1 py-3 rounded-2xl border border-[#E5E7EB] text-sm text-[#6B7280]"
+              >
+                취소
+              </button>
+              <button
+                onClick={() => { removeBook(); setConfirmDelete(false); }}
+                className="flex-1 py-3 rounded-2xl bg-red-500 text-white text-sm font-bold"
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 const KEY = 'bookle_exchanges';
 
-export type ExchangeStatus = 'pending' | 'accepted' | 'rejected';
+export type ExchangeStatus = 'pending' | 'accepted' | 'shipping' | 'completed' | 'rejected';
 
 export interface ExchangeRequest {
   id: string;

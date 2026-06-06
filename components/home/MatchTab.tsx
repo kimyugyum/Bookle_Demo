@@ -23,9 +23,11 @@ function Avatar({ name, idx }: { name: string; idx: number }) {
 }
 
 const STATUS_LABEL: Record<string, { label: string; color: string }> = {
-  pending: { label: '응답 대기', color: 'bg-amber-50 text-amber-600' },
-  accepted: { label: '수락됨', color: 'bg-[#E8F5EE] text-[#1A6B3C]' },
-  rejected: { label: '거절됨', color: 'bg-red-50 text-red-400' },
+  pending:   { label: '응답 대기', color: 'bg-amber-50 text-amber-600' },
+  accepted:  { label: '수락됨',   color: 'bg-[#E8F5EE] text-[#1A6B3C]' },
+  shipping:  { label: '배송 중',  color: 'bg-blue-50 text-blue-600' },
+  completed: { label: '교환 완료', color: 'bg-purple-50 text-purple-600' },
+  rejected:  { label: '거절됨',   color: 'bg-red-50 text-red-400' },
 };
 
 export function MatchTab() {

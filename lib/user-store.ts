@@ -69,6 +69,24 @@ export function completionPct(user: UserData | null): number {
   return Math.round((steps.filter((s) => s.done).length / steps.length) * 100);
 }
 
+export function updateGenres(genres: string[]): void {
+  const user = loadUser();
+  if (!user) return;
+  saveUser({ ...user, genres });
+}
+
+export function updateBook(book: UserData['book']): void {
+  const user = loadUser();
+  if (!user) return;
+  saveUser({ ...user, book });
+}
+
+export function removeBook(): void {
+  const user = loadUser();
+  if (!user) return;
+  saveUser({ ...user, book: null });
+}
+
 export function genreLabels(genreIds: string[]): string[] {
   return genreIds.map((id) => GENRE_LABELS[id] ?? id);
 }
