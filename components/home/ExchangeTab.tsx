@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, SlidersHorizontal, Star, MapPin, ArrowLeftRight, X, Send, CheckCircle2, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { GENRE_LABELS } from '@/lib/user-store';
+import { GENRE_LABELS, markFirstRequest } from '@/lib/user-store';
 import { useAppStore } from '@/lib/store';
 import { BookCover } from '@/components/ui/BookCover';
 import { ALL_GENRES, EXCHANGE_BOOKS } from '@/lib/mock-data';
@@ -134,6 +134,7 @@ export function ExchangeTab() {
         message,
         status: 'pending',
       });
+      markFirstRequest();
       setSubmitting(false);
       setDone(true);
     }, 800);
