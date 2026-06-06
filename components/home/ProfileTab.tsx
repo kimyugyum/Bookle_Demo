@@ -60,47 +60,54 @@ function GenreEditModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] flex items-end justify-center" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40" />
       <div
-        className="relative w-full max-w-md bg-white rounded-t-3xl px-5 pt-5 pb-8 animate-slide-up"
+        className="relative w-full max-w-md bg-white rounded-t-3xl flex flex-col overflow-hidden animate-slide-up"
+        style={{ maxHeight: '85dvh' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-base font-bold text-[#111827]">관심 장르 편집</h2>
-            <p className="text-xs text-[#9CA3AF] mt-0.5">최대 5개 선택</p>
+        <div className="px-5 pt-5 shrink-0">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-base font-bold text-[#111827]">관심 장르 편집</h2>
+              <p className="text-xs text-[#9CA3AF] mt-0.5">최대 5개 선택</p>
+            </div>
+            <button onClick={onClose} className="p-1 text-[#9CA3AF]"><X size={20} /></button>
           </div>
-          <button onClick={onClose} className="p-1 text-[#9CA3AF]"><X size={20} /></button>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mb-5">
-          {ALL_GENRE_IDS.map((id) => {
-            const isOn = selected.includes(id);
-            return (
-              <button
-                key={id}
-                onClick={() => toggle(id)}
-                className={cn(
-                  'py-3 rounded-2xl border text-xs font-semibold transition-all',
-                  isOn
-                    ? 'border-[#1A6B3C] bg-[#E8F5EE] text-[#1A6B3C]'
-                    : 'border-[#E5E7EB] bg-white text-[#6B7280]'
-                )}
-              >
-                {GENRE_LABELS[id]}
-              </button>
-            );
-          })}
+        <div className="flex-1 overflow-y-auto px-5 min-h-0">
+          <div className="grid grid-cols-3 gap-2 pb-2">
+            {ALL_GENRE_IDS.map((id) => {
+              const isOn = selected.includes(id);
+              return (
+                <button
+                  key={id}
+                  onClick={() => toggle(id)}
+                  className={cn(
+                    'py-3 rounded-2xl border text-xs font-semibold transition-all',
+                    isOn
+                      ? 'border-[#1A6B3C] bg-[#E8F5EE] text-[#1A6B3C]'
+                      : 'border-[#E5E7EB] bg-white text-[#6B7280]'
+                  )}
+                >
+                  {GENRE_LABELS[id]}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        <button
-          onClick={() => { onSave(selected); onClose(); }}
-          disabled={selected.length === 0}
-          className="w-full py-3 rounded-2xl bg-[#1A6B3C] text-white text-sm font-bold disabled:opacity-40"
-        >
-          {selected.length}개 선택 완료
-        </button>
+        <div className="px-5 pt-3 pb-8 shrink-0">
+          <button
+            onClick={() => { onSave(selected); onClose(); }}
+            disabled={selected.length === 0}
+            className="w-full py-3 rounded-2xl bg-[#1A6B3C] text-white text-sm font-bold disabled:opacity-40"
+          >
+            {selected.length}개 선택 완료
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -124,7 +131,7 @@ function BookEditModal({
   const canSave = title.trim().length > 0 && author.trim().length > 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] flex items-end justify-center" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40" />
       <div
         className="relative w-full max-w-md bg-white rounded-t-3xl px-5 pt-5 pb-8 animate-slide-up"
@@ -241,7 +248,7 @@ export function ProfileTab({ onTabChange }: ProfileTabProps) {
           </div>
           <div className="text-center">
             <h2 className="text-white text-xl font-bold">{user?.name ?? '사용자'}</h2>
-            <p className="text-[#A8D5B8] text-sm mt-0.5">{user?.email ?? '로그인이 필요해요'}</p>
+            <p className="text-white/70 text-sm mt-0.5">{user?.email ?? '로그인이 필요해요'}</p>
           </div>
           <div className="flex gap-8 mt-1">
             {[
@@ -250,8 +257,8 @@ export function ProfileTab({ onTabChange }: ProfileTabProps) {
               { label: '관심 장르', value: String(displayGenres.length) },
             ].map((s) => (
               <div key={s.label} className="text-center">
-                <p className="text-[#111827] text-2xl font-black">{s.value}</p>
-                <p className="text-[#6B7280] text-xs mt-0.5">{s.label}</p>
+                <p className="text-white text-2xl font-black">{s.value}</p>
+                <p className="text-white/70 text-xs mt-0.5">{s.label}</p>
               </div>
             ))}
           </div>
@@ -597,7 +604,7 @@ export function ProfileTab({ onTabChange }: ProfileTabProps) {
 
       {/* ── 도서 삭제 확인 ── */}
       {confirmDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={() => setConfirmDelete(false)}>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center px-6" onClick={() => setConfirmDelete(false)}>
           <div className="absolute inset-0 bg-black/40" />
           <div
             className="relative w-full max-w-sm bg-white rounded-3xl p-6 text-center animate-scale-in"
