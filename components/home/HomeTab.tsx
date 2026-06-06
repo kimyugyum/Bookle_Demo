@@ -4,63 +4,19 @@ import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Search, ChevronRight, TrendingUp, Heart, Repeat2, MessageCircle } from 'lucide-react';
 import { BookCover } from '@/components/ui/BookCover';
-import { GENRE_LABELS, genreLabels } from '@/lib/user-store';
+import { GENRE_LABELS } from '@/lib/user-store';
+import { useAppStore } from '@/lib/store';
+import { BESTSELLERS, POPULAR_EXCHANGE, BANNERS, HOME_COMMUNITY_POSTS } from '@/lib/mock-data';
 import type { AppTab } from '@/types/app';
-import type { UserData } from '@/types/onboarding';
 
 interface HomeTabProps {
-  user: UserData | null;
-  isFirstVisit: boolean;
   onTabChange: (tab: AppTab) => void;
 }
 
-const BESTSELLERS = [
-  { title: '채식주의자',       author: '한강',      rank: 1 },
-  { title: '아몬드',           author: '손원평',    rank: 2 },
-  { title: '나의 라임 오렌지 나무', author: '조제 마우로 데 바스콘셀로스', rank: 3 },
-  { title: '어린왕자',         author: '생텍쥐페리', rank: 4 },
-  { title: '미드나잇 라이브러리', author: '매트 헤이그', rank: 5 },
-  { title: '사피엔스',         author: '유발 하라리', rank: 6 },
-];
-
-const POPULAR_EXCHANGE = [
-  { title: '코스모스',     author: '칼 세이건',  count: 12 },
-  { title: '돈의 심리학', author: '모건 하우절', count: 9  },
-  { title: '채식주의자',  author: '한강',        count: 8  },
-  { title: '불편한 편의점', author: '김호연',    count: 7  },
-  { title: '사피엔스',    author: '유발 하라리', count: 6  },
-];
-
-const BANNERS = [
-  {
-    image: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=600&q=80',
-    tag: '이벤트',
-    title: '첫 교환 성공하면\n포인트 2배 적립!',
-    sub: '6월 한 달간 진행',
-  },
-  {
-    image: 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=600&q=80',
-    tag: '신규 기능',
-    title: 'AI 매칭으로\n딱 맞는 책 교환 상대 찾기',
-    sub: '취향 기반 자동 추천',
-  },
-  {
-    image: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=600&q=80',
-    tag: '베스트',
-    title: '이번 주 가장 많이\n교환된 책 TOP 10',
-    sub: '지금 바로 확인하세요',
-  },
-];
-
 const AVATAR_COLORS = ['#7C3AED', '#DB2777', '#0284C7', '#D97706', '#059669'];
 
-const COMMUNITY_POSTS = [
-  { author: '박민준', title: '"채식주의자" 읽고 생각이 많아졌어요', likes: 42, time: '1시간 전', category: '서평' },
-  { author: '정유진', title: '독서 슬럼프 극복 방법 공유합니다',    likes: 61, time: '2일 전',  category: '독서팁' },
-  { author: '이수연', title: '이번 달 읽은 책 5권 후기',           likes: 38, time: '3일 전',  category: '서평' },
-];
-
-export function HomeTab({ user, isFirstVisit, onTabChange }: HomeTabProps) {
+export function HomeTab({ onTabChange }: HomeTabProps) {
+  const user = useAppStore((s) => s.user);
   const userGenreNames = (user?.genres ?? []).map((id) => GENRE_LABELS[id]).filter(Boolean);
   const name = user?.name || '독서인';
 
@@ -176,7 +132,7 @@ export function HomeTab({ user, isFirstVisit, onTabChange }: HomeTabProps) {
             </button>
           </div>
           <div className="space-y-2">
-            {COMMUNITY_POSTS.map((post, idx) => (
+            {HOME_COMMUNITY_POSTS.map((post, idx) => (
               <button
                 key={post.title}
                 onClick={() => onTabChange('community')}

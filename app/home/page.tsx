@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import type { AppTab } from '@/types/app';
-import type { UserData } from '@/types/onboarding';
-import { loadUser, consumeFirstVisit } from '@/lib/user-store';
+import { useAppStore } from '@/lib/store';
+import { consumeFirstVisit } from '@/lib/user-store';
 import { BottomNav } from '@/components/home/BottomNav';
 import { Header } from '@/components/home/Header';
 import { HomeTab } from '@/components/home/HomeTab';
@@ -14,26 +14,23 @@ import { ProfileTab } from '@/components/home/ProfileTab';
 
 export default function HomePage() {
   const [tab, setTab] = useState<AppTab>('home');
-  const [user, setUser] = useState<UserData | null>(null);
-  const [isFirstVisit, setIsFirstVisit] = useState(false);
+  const init = useAppStore((s) => s.init);
 
   useEffect(() => {
-    setUser(loadUser());
-    setIsFirstVisit(consumeFirstVisit());
-  }, []);
+    init();
+    consumeFirstVisit();
+  }, [init]);
 
   return (
     <div className="bg-[#F9FAFB] min-h-screen">
       <div className="max-w-md mx-auto min-h-screen flex flex-col relative">
-        <Header user={user} onTabChange={setTab} />
+        <Header onTabChange={setTab} />
         <div className="flex-1 overflow-y-auto pb-20">
-          {tab === 'home' && (
-            <HomeTab user={user} isFirstVisit={isFirstVisit} onTabChange={setTab} />
-          )}
-          {tab === 'exchange' && <ExchangeTab userGenres={user?.genres ?? []} />}
+          {tab === 'home' && <HomeTab onTabChange={setTab} />}
+          {tab === 'exchange' && <ExchangeTab />}
           {tab === 'match' && <MatchTab />}
           {tab === 'community' && <CommunityTab />}
-          {tab === 'profile' && <ProfileTab user={user} onTabChange={setTab} />}
+          {tab === 'profile' && <ProfileTab onTabChange={setTab} />}
         </div>
         <BottomNav active={tab} onChange={setTab} />
       </div>

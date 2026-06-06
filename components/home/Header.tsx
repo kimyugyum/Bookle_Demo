@@ -3,12 +3,10 @@
 import { useState, useCallback } from 'react';
 import Image from 'next/image';
 import { X, ChevronRight, ArrowLeftRight, Users, BookOpen, Settings, LogOut, Bell } from 'lucide-react';
-import { logout } from '@/lib/user-store';
+import { useAppStore } from '@/lib/store';
 import type { AppTab } from '@/types/app';
-import type { UserData } from '@/types/onboarding';
 
 interface HeaderProps {
-  user?: UserData | null;
   onTabChange?: (tab: AppTab) => void;
 }
 
@@ -19,7 +17,9 @@ const MENU_ITEMS: { icon: React.ReactNode; label: string; tab: AppTab }[] = [
   { icon: <Settings size={18} />,       label: '프로필',   tab: 'profile'   },
 ];
 
-export function Header({ user, onTabChange }: HeaderProps) {
+export function Header({ onTabChange }: HeaderProps) {
+  const user   = useAppStore((s) => s.user);
+  const logout = useAppStore((s) => s.logout);
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
 

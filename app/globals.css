@@ -51,6 +51,12 @@ button, input, textarea, select {
 .animate-fade-in-up { animation: fadeInUp 0.45s ease both; }
 .animate-fade-in    { animation: fadeIn 0.35s ease both; }
 .animate-scale-in   { animation: scaleIn 0.4s ease both; }
+.animate-slide-up   { animation: slideUp 0.35s cubic-bezier(0.32, 0.72, 0, 1) both; }
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
 
 @keyframes logoFloat {
   0%, 100% { transform: translateY(0px); }

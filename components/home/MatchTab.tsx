@@ -1,33 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Sparkles, Check, X, ChevronRight, Clock, ArrowLeftRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BookCover } from '@/components/ui/BookCover';
-import { loadExchanges, updateStatus, type ExchangeRequest } from '@/lib/exchange-store';
+import { useAppStore } from '@/lib/store';
+import { DEMO_RECEIVED, AI_RECS } from '@/lib/mock-data';
 
 type SubTab = 'received' | 'sent';
-
-// 데모용 고정 받은 요청
-const DEMO_RECEIVED = [
-  {
-    id: 'demo-1',
-    name: '박민준',
-    theirBook: '채식주의자',
-    theirAuthor: '한강',
-    wantsMyBook: '불편한 편의점',
-    matchScore: 94,
-    time: '2시간 전',
-    reviewCount: 12,
-    condition: 'A',
-  },
-];
-
-const AI_RECS = [
-  { id: 1, name: '김태호', book: '사피엔스', author: '유발 하라리', matchScore: 91, reviewCount: 24, genres: ['역사/인문', '과학/기술'], reason: '역사/인문 장르 취향이 일치해요' },
-  { id: 2, name: '정유진', book: '아몬드', author: '손원평', matchScore: 85, reviewCount: 6, genres: ['소설', '자기계발'], reason: '소설 선호도가 비슷해요' },
-  { id: 3, name: '최준서', book: '미드나잇 라이브러리', author: '매트 헤이그', matchScore: 79, reviewCount: 15, genres: ['소설', '에세이'], reason: '에세이 장르 취향이 비슷해요' },
-];
 
 const AVATAR_COLORS = ['#7C3AED', '#DB2777', '#0284C7', '#D97706', '#059669'];
 function Avatar({ name, idx }: { name: string; idx: number }) {
@@ -48,14 +28,14 @@ const STATUS_LABEL: Record<string, { label: string; color: string }> = {
 };
 
 export function MatchTab() {
+  const exchanges            = useAppStore((s) => s.exchanges);
+  const updateExchangeStatus = useAppStore((s) => s.updateExchangeStatus);
+
   const [subTab, setSubTab] = useState<SubTab>('received');
   const [demoAccepted, setDemoAccepted] = useState<string[]>([]);
   const [demoRejected, setDemoRejected] = useState<string[]>([]);
-  const [sentRequests, setSentRequests] = useState<ExchangeRequest[]>([]);
 
-  useEffect(() => {
-    setSentRequests(loadExchanges().filter((e) => e.direction === 'sent'));
-  }, [subTab]);
+  const sentRequests = exchanges.filter((e) => e.direction === 'sent');
 
   const pendingDemo = DEMO_RECEIVED.filter(
     (r) => !demoAccepted.includes(r.id) && !demoRejected.includes(r.id)
@@ -63,10 +43,7 @@ export function MatchTab() {
   const receivedBadge = pendingDemo.length;
 
   const handleStatusChange = (id: string, status: 'accepted' | 'rejected') => {
-    updateStatus(id, status);
-    setSentRequests((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status } : r))
-    );
+    updateExchangeStatus(id, status);
   };
 
   return (

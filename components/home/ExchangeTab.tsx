@@ -4,65 +4,76 @@ import { useState, useEffect, useRef } from 'react';
 import { Search, SlidersHorizontal, Star, MapPin, ArrowLeftRight, X, Send, CheckCircle2, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GENRE_LABELS } from '@/lib/user-store';
-import { loadUser } from '@/lib/user-store';
+import { useAppStore } from '@/lib/store';
 import { BookCover } from '@/components/ui/BookCover';
-import { addExchange } from '@/lib/exchange-store';
-import type { UserData } from '@/types/onboarding';
+import { ALL_GENRES, EXCHANGE_BOOKS } from '@/lib/mock-data';
 
-interface ExchangeTabProps {
-  userGenres?: string[];
+const AVATAR_COLORS = ['#7C3AED', '#DB2777', '#0284C7', '#D97706', '#059669'];
+function nameToColor(name: string) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
 }
-
-const ALL_GENRES = ['전체', '소설', '자기계발', '과학/기술', '역사/인문', '경제/경영', '에세이', '만화/그래픽'];
-
-const BOOKS = [
-  { id: 1, title: '채식주의자', author: '한강', genre: '소설', condition: 'A' as const, owner: '박민준', ownerRating: 4.8, reviewCount: 12, distance: '2.1km', wantGenres: ['소설', '에세이'], matchScore: 94 },
-  { id: 2, title: '코스모스', author: '칼 세이건', genre: '과학/기술', condition: 'B' as const, owner: '이수연', ownerRating: 4.6, reviewCount: 8, distance: '0.8km', wantGenres: ['역사/인문'], matchScore: 87 },
-  { id: 3, title: '사피엔스', author: '유발 하라리', genre: '역사/인문', condition: 'A' as const, owner: '김태호', ownerRating: 4.9, reviewCount: 24, distance: '3.5km', wantGenres: ['소설', '과학/기술'], matchScore: 91 },
-  { id: 4, title: '아몬드', author: '손원평', genre: '소설', condition: 'B' as const, owner: '정유진', ownerRating: 4.7, reviewCount: 6, distance: '1.2km', wantGenres: ['자기계발'], matchScore: 85 },
-  { id: 5, title: '미드나잇 라이브러리', author: '매트 헤이그', genre: '소설', condition: 'A' as const, owner: '최준서', ownerRating: 4.5, reviewCount: 15, distance: '4.0km', wantGenres: ['에세이', '소설'], matchScore: 79 },
-  { id: 6, title: '돈의 심리학', author: '모건 하우절', genre: '경제/경영', condition: 'B' as const, owner: '한지원', ownerRating: 4.8, reviewCount: 20, distance: '2.8km', wantGenres: ['자기계발'], matchScore: 76 },
-  { id: 7, title: '클루지', author: '게리 마커스', genre: '과학/기술', condition: 'C' as const, owner: '오준혁', ownerRating: 4.6, reviewCount: 11, distance: '5.2km', wantGenres: ['역사/인문'], matchScore: 72 },
-  { id: 8, title: '나의 라임 오렌지 나무', author: '조제 마우로 데 바스콘셀로스', genre: '소설', condition: 'A' as const, owner: '최아름', ownerRating: 4.7, reviewCount: 18, distance: '1.7km', wantGenres: ['에세이', '소설'], matchScore: 88 },
-];
 
 const CONDITION_STYLE = { A: 'text-[#1A6B3C] bg-[#E8F5EE]', B: 'text-amber-600 bg-amber-50', C: 'text-orange-600 bg-orange-50' };
 const CONDITION_LABEL = { A: '최상', B: '상', C: '중' };
+const CONDITION_DESC = { A: '새 책과 동일한 상태', B: '약간의 사용감, 훼손 없음', C: '눈에 띄는 사용감 있음' };
+const CONDITION_BARS = { A: 3, B: 2, C: 1 };
+const CONDITION_BAR_COLOR = { A: 'bg-[#1A6B3C]', B: 'bg-amber-400', C: 'bg-orange-400' };
 
-type ModalBook = typeof BOOKS[0];
+type ModalBook = typeof EXCHANGE_BOOKS[0];
+type SortBy = 'match' | 'distance' | 'newest';
 
-export function ExchangeTab({ userGenres = [] }: ExchangeTabProps) {
+const SORT_OPTIONS: { value: SortBy; label: string }[] = [
+  { value: 'match',    label: '매칭도순' },
+  { value: 'distance', label: '거리순'   },
+  { value: 'newest',   label: '최신순'   },
+];
+
+export function ExchangeTab() {
+  const user         = useAppStore((s) => s.user);
+  const addExchange  = useAppStore((s) => s.addExchange);
+
   const [query, setQuery] = useState('');
   const [genre, setGenre] = useState('전체');
+  const [sortBy, setSortBy] = useState<SortBy>('match');
+  const [sortOpen, setSortOpen] = useState(false);
   const [modalBook, setModalBook] = useState<ModalBook | null>(null);
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
-  const [user, setUser] = useState<UserData | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [dragDelta, setDragDelta] = useState(0);
   const dragStartY = useRef(0);
-  const baseOffset = useRef(0); // collapsed offset in px
+  const baseOffset = useRef(0);
 
-  useEffect(() => {
-    setUser(loadUser());
-  }, []);
-
-  const userGenreNames = userGenres.map((id) => GENRE_LABELS[id]).filter(Boolean);
+  const userGenreNames = (user?.genres ?? []).map((id) => GENRE_LABELS[id]).filter(Boolean);
   const hasTaste = userGenreNames.length > 0;
   const genreChips = hasTaste ? ['전체', '✨ 내 취향', ...ALL_GENRES.slice(1)] : ALL_GENRES;
 
-  const filtered = BOOKS.filter((b) => {
+  const filtered = EXCHANGE_BOOKS.filter((b) => {
     if (query && !b.title.includes(query) && !b.author.includes(query)) return false;
     if (genre === '전체') return true;
     if (genre === '✨ 내 취향') return userGenreNames.includes(b.genre);
     return b.genre === genre;
   });
 
-  const sorted = hasTaste
-    ? [...filtered].sort((a, b) => +!userGenreNames.includes(a.genre) - +!userGenreNames.includes(b.genre))
-    : filtered;
+  const sorted = (() => {
+    const arr = [...filtered];
+    if (sortBy === 'match') {
+      return arr.sort((a, b) => {
+        const am = userGenreNames.includes(a.genre) ? 1 : 0;
+        const bm = userGenreNames.includes(b.genre) ? 1 : 0;
+        if (bm !== am) return bm - am;
+        return b.matchScore - a.matchScore;
+      });
+    }
+    if (sortBy === 'distance') {
+      return arr.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+    }
+    return arr.sort((a, b) => b.id - a.id);
+  })();
 
   const openModal = (book: ModalBook) => {
     setModalBook(book);
@@ -147,9 +158,41 @@ export function ExchangeTab({ userGenres = [] }: ExchangeTabProps) {
               className="flex-1 bg-transparent text-sm text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none"
             />
           </div>
-          <button className="w-10 h-10 rounded-xl bg-[#F3F4F6] flex items-center justify-center">
-            <SlidersHorizontal size={16} className="text-[#6B7280]" />
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setSortOpen((v) => !v)}
+              className={cn(
+                'w-10 h-10 rounded-xl flex items-center justify-center relative transition-colors',
+                sortOpen ? 'bg-[#E8F5EE]' : 'bg-[#F3F4F6]'
+              )}
+            >
+              <SlidersHorizontal size={16} className={sortOpen ? 'text-[#1A6B3C]' : 'text-[#6B7280]'} />
+              {sortBy !== 'match' && (
+                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#1A6B3C]" />
+              )}
+            </button>
+            {sortOpen && (
+              <>
+                <div className="fixed inset-0 z-20" onClick={() => setSortOpen(false)} />
+                <div className="absolute right-0 top-12 z-30 bg-white rounded-2xl shadow-lg border border-[#E5E7EB] overflow-hidden w-32">
+                  {SORT_OPTIONS.map(({ value, label }) => (
+                    <button
+                      key={value}
+                      onClick={() => { setSortBy(value); setSortOpen(false); }}
+                      className={cn(
+                        'w-full px-4 py-3 text-sm text-left transition-colors',
+                        sortBy === value
+                          ? 'bg-[#E8F5EE] text-[#1A6B3C] font-bold'
+                          : 'text-[#374151] hover:bg-[#F9FAFB]'
+                      )}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
         <div className="flex gap-2 overflow-x-auto pb-1 mt-3 scrollbar-hide">
           {genreChips.map((g) => (
@@ -168,7 +211,7 @@ export function ExchangeTab({ userGenres = [] }: ExchangeTabProps) {
       </div>
 
       <div className="px-4 pt-3 pb-4 space-y-3">
-        {hasTaste && genre === '전체' && (
+        {hasTaste && genre === '전체' && sortBy === 'match' && (
           <p className="text-xs text-[#9CA3AF] px-1">
             ✨ <span className="font-medium text-[#1A6B3C]">{userGenreNames.slice(0, 2).join(' · ')}</span> 취향 책이 상단에 표시돼요
           </p>
@@ -293,11 +336,19 @@ export function ExchangeTab({ userGenres = [] }: ExchangeTabProps) {
               </div>
             ) : (
               <>
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-3">
                   <h2 className="text-base font-bold text-[#111827]">교환 요청하기</h2>
                   <button onClick={closeModal} className="p-1 text-[#9CA3AF]">
                     <X size={20} />
                   </button>
+                </div>
+
+                {/* 목업 공지 */}
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 mb-4">
+                  <span className="text-amber-500 text-xs shrink-0">⚠️</span>
+                  <p className="text-[10px] text-amber-700 leading-snug">
+                    아래 데이터 및 사진은 <span className="font-semibold">데모용 목업</span>입니다. 실제 서비스에서는 판매자가 직접 등록한 정보가 표시됩니다.
+                  </p>
                 </div>
 
                 {/* 교환 도식 */}
@@ -319,9 +370,63 @@ export function ExchangeTab({ userGenres = [] }: ExchangeTabProps) {
                   </div>
                 </div>
 
+                {/* 등록 사진 */}
+                <div className="mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <p className="text-xs font-medium text-[#374151]">
+                      등록 사진 <span className="text-[#9CA3AF] font-normal">{modalBook.photos.length}장</span>
+                    </p>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-600 font-medium">예시</span>
+                  </div>
+                  <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                    {modalBook.photos.map((photo, idx) => (
+                      <div key={idx} className="shrink-0 flex flex-col items-center gap-1">
+                        <div className="w-24 h-32 rounded-xl overflow-hidden bg-[#F3F4F6]">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={photo.url}
+                            alt={photo.label}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <span className="text-[10px] text-[#9CA3AF]">{photo.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 책 상태 */}
+                <div className="flex items-center justify-between p-3 rounded-2xl bg-[#F9FAFB] border border-[#E5E7EB] mb-4">
+                  <div>
+                    <p className="text-xs font-medium text-[#374151]">책 상태</p>
+                    <p className="text-[10px] text-[#9CA3AF] mt-0.5">{CONDITION_DESC[modalBook.condition]}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1">
+                      {([1, 2, 3] as const).map((i) => (
+                        <div
+                          key={i}
+                          className={cn(
+                            'w-5 h-2 rounded-full',
+                            i <= CONDITION_BARS[modalBook.condition]
+                              ? CONDITION_BAR_COLOR[modalBook.condition]
+                              : 'bg-[#E5E7EB]'
+                          )}
+                        />
+                      ))}
+                    </div>
+                    <span className={cn('text-xs font-bold px-2 py-0.5 rounded-lg', CONDITION_STYLE[modalBook.condition])}>
+                      {CONDITION_LABEL[modalBook.condition]}
+                    </span>
+                  </div>
+                </div>
+
                 {/* 상대방 정보 */}
                 <div className="flex items-center gap-2 mb-4 px-1">
-                  <div className="w-7 h-7 rounded-full bg-[#E8F5EE] flex items-center justify-center text-xs font-bold text-[#1A6B3C]">
+                  <div
+                    className="w-9 h-9 rounded-2xl flex items-center justify-center text-white font-bold text-sm shrink-0"
+                    style={{ background: nameToColor(modalBook.owner) }}
+                  >
                     {modalBook.owner[0]}
                   </div>
                   <span className="text-sm font-medium text-[#111827]">{modalBook.owner}</span>
