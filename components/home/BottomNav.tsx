@@ -30,7 +30,7 @@ const TABS: {
 
 export function BottomNav({ active, onChange, matchBadge = 1 }: BottomNavProps) {
   return (
-    <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t border-[#F3F4F6] z-50">
+    <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t border-[#F3F4F6] z-30">
       <div className="flex">
         {TABS.map(({ id, label, Icon }) => {
           const isActive = active === id;

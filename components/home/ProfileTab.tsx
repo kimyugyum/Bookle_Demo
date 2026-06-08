@@ -60,7 +60,7 @@ function GenreEditModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40" />
       <div
         className="relative w-full max-w-md bg-white rounded-t-3xl flex flex-col overflow-hidden animate-slide-up"
@@ -131,7 +131,7 @@ function BookEditModal({
   const canSave = title.trim().length > 0 && author.trim().length > 0;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40" />
       <div
         className="relative w-full max-w-md bg-white rounded-t-3xl px-5 pt-5 pb-8 animate-slide-up"
@@ -604,7 +604,7 @@ export function ProfileTab({ onTabChange }: ProfileTabProps) {
 
       {/* ── 도서 삭제 확인 ── */}
       {confirmDelete && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center px-6" onClick={() => setConfirmDelete(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={() => setConfirmDelete(false)}>
           <div className="absolute inset-0 bg-black/40" />
           <div
             className="relative w-full max-w-sm bg-white rounded-3xl p-6 text-center animate-scale-in"
